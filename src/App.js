@@ -19,7 +19,6 @@ const searchVector = [
 ];
 
 function findSurroundingMines(row, col, board) {
-  console.log('find surrounding mines at', row, col, board)
   let mineCount = 0;
   let vector;
   for (let m = 0; m < searchVector.length; m++) {
@@ -45,7 +44,9 @@ function findSurroundingMines(row, col, board) {
 
 function updateBoard(board, click) {
   let [row, col] = click;
+  const traversed = {}
   let numUpdates = 0;
+
   if (board[row][col] === "U") {
     // callback("FOUND_EMPTY", row, col);
     let mineCount = findSurroundingMines(row, col, board)
@@ -61,46 +62,50 @@ function updateBoard(board, click) {
       [row, col] = stack.shift();
       // Count bombs.
       mineCount = findSurroundingMines(row, col, board)
-      numUpdates += 1
       if (mineCount > 0) {
         board[row][col] = mineCount + "";
         // callback("UPDATE_CELL_MINE_ADJ", row, col, mineCount);
-        // yield board;
+        // yield boardCopy;
       } else {
         board[row][col] = "V";
         // callback("UPDATE_CELL_BLANK", row, col);
-        // yield board;
+        // yield boardCopy;
 
         // Traverse neighbours if we are on a blank cell
         for (let i = 0; i < searchVector.length; i++) {
+          let vectorI = searchVector[i][0] + row
+          let vectorJ = searchVector[i][1] + col
           if (
-            searchVector[i][0] + row < 0 ||
-            searchVector[i][0] + row >= board.length ||
-            searchVector[i][1] + col < 0 ||
-            searchVector[i][1] + col >= board[0].length ||
-            board[searchVector[i][0] + row][searchVector[i][1] + col] !== "U"
+            vectorI < 0 ||
+            vectorI >= board.length ||
+            vectorJ < 0 ||
+            vectorJ >= board[0].length ||
+            traversed[(vectorI) + ":" + (vectorJ)] ||
+            board[vectorI][vectorJ] !== "U"
           ) {
+            // console.log(traversed)
             continue;
           }
 
           // push neighboring blank cells to stack.
           // callback(
           //   "FOUND_EMPTY",
-          //   searchVector[i][0] + row,
-          //   searchVector[i][1] + col
+          //   vectorI,
+          //   vectorJ
           // );
-
-          stack.push([searchVector[i][0] + row, searchVector[i][1] + col]);
+          // 🚨 This is important. Track traversals in a hash map so we dont repeat our search cells!!
+          traversed[vectorI + ":" + vectorJ] = true
+          stack.push([vectorI, vectorJ]);
         }
       }
+      numUpdates += 1
     }
-    // emptyRecurse(board, click, callback);
   } else if (board[row][col] === "M") {
     board[row][col] = "X";
   }
 
   // callback("KILL");
-  // console.log(board);
+  // console.log(boardCopy);
   return { board, numUpdates };
 };
 
@@ -115,9 +120,14 @@ function reducer(draft, action) {
   switch (action.type) {
     case 'START_NEW_GAME':
       draft.status = 'playing'
+      draft.grid = null
       break;
     case 'CLICK_TARGET':
-      console.log(draft)
+      if (action.value === 'M') {
+        draft.status = 'loses'
+        draft.grid[action.row][action.col] = "X"
+        break;
+      }
       const { board, numUpdates } = updateBoard(draft.grid, [action.row, action.col])
       draft.grid = board
       draft.unvisitedCount -= numUpdates
@@ -135,16 +145,14 @@ function reducer(draft, action) {
   }
 }
 
-const set = new Set(['M', 'X', 'U', 'V', '1', '2', '3', '4', '5', '6', '7', '8'])
-
 function App() {
   const [state, dispatch] = useImmerReducer(reducer, initialState);
 
   useEffect(() => {
     if (state.status === 'playing' && !state.grid) {
       const numMines = 10;
-      const W = 6
-      const H = 6
+      const W = 12
+      const H = 12
       const grid = []
 
       const bombIndices = {}
@@ -156,13 +164,11 @@ function App() {
         // Try a new position if its already a mine.
         if (bombIndices[randI + ":" + randJ]) {
           while (bombIndices[randI + ":" + randJ]) {
-            console.log('find new index other than ', randI, randJ)
             randI = Math.floor(Math.random() * W)
             randJ = Math.floor(Math.random() * H)
           }
         }
 
-        console.log('add bomb at ', randI, randJ)
         bombIndices[randI + ":" + randJ] = true
       }
 
@@ -215,6 +221,10 @@ function App() {
       }
       {/* <h1>Minesweeper</h1> */}
       {state.status === 'wins' && <h3>Congrats! You won!</h3>}
+      {state.status === 'loses' && <div>
+        You hit a mine, try again?
+      </div>}
+      {state.status !== 'new' && state.status !== 'playing' && <button onClick={handleNewGameClick}>Replay</button>}
       {
         state.status !== 'new' && (<>
           Cells left to discover {state.unvisitedCount}
