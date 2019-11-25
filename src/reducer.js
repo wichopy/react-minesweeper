@@ -30,9 +30,6 @@ export function reducer(draft, action) {
         draft.status = 'wins'
       }
       break;
-    case 'USER_WINS':
-      draft.status = 'wins'
-      break;
     default:
       return draft;
   }
