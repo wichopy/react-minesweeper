@@ -27,8 +27,6 @@ function findSurroundingMines(row, col, board) {
       colvec < board[0].length
     ) {
       if (board[rowvec][colvec] === "M") {
-        // callback("FOUND_MINE", rowvec, colvec);
-        // yield board;
         mineCount++;
       }
     }
@@ -43,7 +41,6 @@ function updateBoard(board, click) {
   let numUpdates = 0;
 
   if (board[row][col] === "U") {
-    // callback("FOUND_EMPTY", row, col);
     let mineCount = findSurroundingMines(row, col, board)
 
     if (mineCount > 0) {
@@ -51,20 +48,16 @@ function updateBoard(board, click) {
       return { board, numUpdates: 1 }
     }
 
-    const stack = [];
-    stack.push([row, col]);
-    while (stack.length) {
-      [row, col] = stack.shift();
+    const queue = [];
+    queue.push([row, col]);
+    while (queue.length) {
+      [row, col] = queue.shift();
       // Count bombs.
       mineCount = findSurroundingMines(row, col, board)
       if (mineCount > 0) {
         board[row][col] = mineCount + "";
-        // callback("UPDATE_CELL_MINE_ADJ", row, col, mineCount);
-        // yield boardCopy;
       } else {
         board[row][col] = "V";
-        // callback("UPDATE_CELL_BLANK", row, col);
-        // yield boardCopy;
 
         // Traverse neighbours if we are on a blank cell
         for (let i = 0; i < searchVector.length; i++) {
@@ -78,29 +71,22 @@ function updateBoard(board, click) {
             traversed[(vectorI) + ":" + (vectorJ)] ||
             board[vectorI][vectorJ] !== "U"
           ) {
-            // console.log(traversed)
             continue;
           }
-
-          // push neighboring blank cells to stack.
-          // callback(
-          //   "FOUND_EMPTY",
-          //   vectorI,
-          //   vectorJ
-          // );
           // 🚨 This is important. Track traversals in a hash map so we dont repeat our search cells!!
           traversed[vectorI + ":" + vectorJ] = true
-          stack.push([vectorI, vectorJ]);
+
+          // push neighboring blank cells to queue.
+          queue.push([vectorI, vectorJ]);
         }
       }
+      // Track number of cell changes
       numUpdates += 1
     }
   } else if (board[row][col] === "M") {
     board[row][col] = "X";
   }
 
-  // callback("KILL");
-  // console.log(boardCopy);
   return { board, numUpdates };
 };
 
