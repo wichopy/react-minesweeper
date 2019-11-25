@@ -4,7 +4,7 @@ import './Grid.css'
 function CellContent({ fill }) {
   let render
   switch (fill) {
-    case 'x':
+    case 'X':
       render = 'bomb'
       break;
     case '1':
@@ -17,8 +17,9 @@ function CellContent({ fill }) {
     case '8':
       render = fill
       break;
-    case 'b':
-    case 'h':
+    case 'M':
+    case 'V':
+    case 'U':
     default:
       render = null
   }
@@ -61,11 +62,17 @@ export default function ({ grid, row, col, onClick }) {
   //     })
   //   }
   // </div >
+  if (!grid) return null
+
   return grid.map((row, i) => {
     return <div key={i} className="row">
       {
         row.map((cell, j) => {
-          return <div key={i + ':' + j} className={`cell cell-${cell}`} onClick={() => onClick(i, j)} >
+          return <div key={i + ':' + j} className={`cell cell-${cell}`} onClick={() => {
+            if (cell === 'U' || cell === 'M') {
+              onClick(i, j, cell)
+            }
+          }} >
             <CellContent fill={cell} />
           </div >
         })
