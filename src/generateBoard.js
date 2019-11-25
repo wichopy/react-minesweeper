@@ -1,8 +1,4 @@
-function generateBoard() {
-
-  const numMines = 10;
-  const W = 12
-  const H = 12
+function generateBoard(numMines = 10, W = 12, H = 12) {
   const grid = []
 
   const bombIndices = {}
