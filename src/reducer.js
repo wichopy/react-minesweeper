@@ -9,18 +9,19 @@ export const initialState = {
 }
 
 export function reducer(draft, action) {
+  let numMines = 50
+  const W = 25
+  const H = 10
+
   switch (action.type) {
     case 'START_NEW_GAME':
       draft.status = 'playing'
-      const grid = generateEmpty()
+      const grid = generateEmpty(W, H)
       draft.grid = grid
       draft.hasFirstClick = false
       break;
     case 'CLICK_TARGET':
       if (!draft.hasFirstClick) {
-        let numMines = 50
-        const W = 25
-        const H = 10
 
         const grid = populate(draft.grid, [action.row, action.col], numMines, W, H)
         draft.grid = grid
