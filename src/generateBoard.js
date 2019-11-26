@@ -1,17 +1,17 @@
-function generateBoard(numMines = 10, W = 12, H = 12) {
+function generateBoard(numMines = 50, W = 25, H = 10) {
   const grid = []
 
   const bombIndices = {}
 
   for (let i = 0; i < numMines; i++) {
-    let randI = Math.floor(Math.random() * W)
-    let randJ = Math.floor(Math.random() * H)
+    let randI = Math.floor(Math.random() * H)
+    let randJ = Math.floor(Math.random() * W)
 
     // Try a new position if its already a mine.
     if (bombIndices[randI + ":" + randJ]) {
       while (bombIndices[randI + ":" + randJ]) {
-        randI = Math.floor(Math.random() * W)
-        randJ = Math.floor(Math.random() * H)
+        randI = Math.floor(Math.random() * H)
+        randJ = Math.floor(Math.random() * W)
       }
     }
 
