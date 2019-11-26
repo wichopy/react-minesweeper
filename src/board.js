@@ -1,3 +1,43 @@
+export function populate(grid, protectedCell, numMines = 50, W = 25, H = 10) {
+  const bombIndices = {}
+
+  for (let i = 0; i < numMines; i++) {
+    let randI = Math.floor(Math.random() * H)
+    let randJ = Math.floor(Math.random() * W)
+
+    // Try a new position if its already a mine.
+    if (bombIndices[randI + ":" + randJ] || (randI === protectedCell[0] && randJ === protectedCell[1])) {
+      while (bombIndices[randI + ":" + randJ] || (randI === protectedCell[0] && randJ === protectedCell[1])) {
+        randI = Math.floor(Math.random() * H)
+        randJ = Math.floor(Math.random() * W)
+      }
+    }
+
+    bombIndices[randI + ":" + randJ] = true
+  }
+
+  for (let i = 0; i < H; i++) {
+    for (let j = 0; j < W; j++) {
+      if (bombIndices[i + ":" + j]) {
+        grid[i][j] = 'M'
+      }
+    }
+  }
+
+  return grid
+}
+
+export function generateEmpty(W = 25, H = 10) {
+  const grid = []
+  for (let i = 0; i < H; i++) {
+    grid[i] = []
+    for (let j = 0; j < W; j++) {
+      grid[i][j] = 'U'
+    }
+  }
+  return grid
+}
+
 const searchVector = [
   // top 3
   [-1, -1],
@@ -35,7 +75,7 @@ function findSurroundingMines(row, col, board) {
   return mineCount
 }
 
-function updateBoard(board, click) {
+export function update(board, click) {
   let [row, col] = click;
   const traversed = {}
   let numUpdates = 0;
@@ -89,5 +129,3 @@ function updateBoard(board, click) {
 
   return { board, numUpdates };
 };
-
-export default updateBoard
