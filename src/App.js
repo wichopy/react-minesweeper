@@ -9,7 +9,6 @@ function App() {
   const [state, dispatch] = useImmerReducer(reducer, initialState);
 
   function handleClick(row, col, value) {
-    // do async stuff...
     dispatch({
       type: 'CLICK_TARGET',
       value,
