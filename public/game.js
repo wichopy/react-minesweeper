@@ -137,7 +137,7 @@ class Board {
         // Track number of cell changes
         numUpdates += 1
       }
-    } else if (this.isBomb[row][col]) {
+    } else if (this.isBomb(row, col)) {
       this.grid[row][col] = "X";
       return 1
     }
@@ -147,7 +147,7 @@ class Board {
 }
 
 class Game {
-  constructor(W = 25, H = 10, numMines = 50) {
+  constructor(W = 10, H = 10, numMines = 10) {
     this.W = W
     this.H = H
     this.numMines = numMines
@@ -155,6 +155,8 @@ class Game {
     this.status = "new"
     this.hasFirstClick = false
     this.board = null
+
+    this.listeners = []
   }
 
   start() {
@@ -172,6 +174,7 @@ class Game {
     } else if (this.board.isBomb(row, col)) {
       this.board.update(row, col)
       this.status = 'loses'
+      this.broadcast()
       return
     }
 
@@ -181,26 +184,65 @@ class Game {
     if (this.unvisitedCount === 0) {
       this.status = 'wins'
     }
+
+    this.broadcast()
+  }
+
+  subscribe(cb) {
+    this.listeners.push(cb)
+  }
+
+  broadcast() {
+    this.listeners.forEach(listener => {
+      listener(this.board.grid)
+    })
   }
 }
+(async function main() {
 
-const game = new Game()
+  const game = new Game()
 
-game.start()
-console.log(game)
-game.click(2, 4)
-console.log(game)
-// while (game.status !== 'wins' || game.status !== 'loses') {
-//   if (game.status === 'new') {
-//     readline.question(`Start game?`, (name) => {
-//       console.log(`Hi ${name}!`)
-//       readline.close()
-//     })
-//   } else {
-//     readline.question(`Pick a square`, (name) => {
-//       console.log(`Hi ${name}!`)
-//       readline.close()
-//     })
-//   }
+  game.start()
+  game.subscribe((grid) => {
+    // print board on each broadcast
+    console.log('Board:')
+    let outputTopRow = '  '
+    grid[0].forEach((col, j) => {
+      outputTopRow += String(j) + ' '
+    })
+    console.log(outputTopRow)
+    grid.forEach((row, i) => {
+      let output = '' + i + ' '
+      row.forEach((col) => {
+        let filter = col === 'M' || col === 'U' ? '?' : col
+        output += `${filter} `
+      })
+      output += ' ' + i
+      console.log(output)
+    })
+    console.log(outputTopRow)
+  })
 
-// }
+  console.log('Starting a new game of minesweeper')
+
+  function prompUser() {
+    return new Promise((resolve, reject) => {
+      readline.question(`Pick a square(separte with a space):`, (input) => {
+        const [row, col] = input.split(' ')
+        game.click(Number(row), Number(col))
+        resolve()
+      });
+    })
+  }
+
+  while (game.status === 'playing') {
+    await prompUser()
+  }
+
+  if (game.status === 'wins') {
+    console.log('You win!')
+  } else {
+    console.log('You lose!')
+  }
+  readline.close()
+})()
