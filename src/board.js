@@ -53,6 +53,13 @@ const searchVector = [
   [0, -1]
 ];
 
+function isWithinBounds(row, col, board) {
+  return row >= 0 &&
+    row < board.length &&
+    col >= 0 &&
+    col < board[0].length
+}
+
 function findSurroundingMines(row, col, board) {
   let mineCount = 0;
   let vector;
@@ -61,10 +68,7 @@ function findSurroundingMines(row, col, board) {
     const rowvec = vector[0] + row;
     const colvec = vector[1] + col;
     if (
-      rowvec >= 0 &&
-      rowvec < board.length &&
-      colvec >= 0 &&
-      colvec < board[0].length
+      isWithinBounds(row, col, board)
     ) {
       if (board[rowvec][colvec] === "M") {
         mineCount++;
@@ -104,10 +108,7 @@ export function update(board, click) {
           let vectorI = searchVector[i][0] + row
           let vectorJ = searchVector[i][1] + col
           if (
-            vectorI < 0 ||
-            vectorI >= board.length ||
-            vectorJ < 0 ||
-            vectorJ >= board[0].length ||
+            !isWithinBounds(vectorI, vectorJ) ||
             traversed[(vectorI) + ":" + (vectorJ)] ||
             board[vectorI][vectorJ] !== "U"
           ) {
