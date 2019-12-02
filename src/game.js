@@ -146,9 +146,11 @@ class Game {
     this.W = W
     this.H = H
     this.numMines = numMines
-    this.unvisitedCount = null
+
+    this._unvisitedCount = null
+    this._hasFirstClick = false
+
     this.status = "new"
-    this.hasFirstClick = false
     this.board = null
 
     this.listeners = []
@@ -157,30 +159,42 @@ class Game {
   start() {
     this.board = new Board(this.W, this.H, this.numMines)
     this.status = 'playing'
-    this.hasFirstClick = false
-    this.unvisitedCount = null
+    this._hasFirstClick = false
+    this._unvisitedCount = null
+
+    return {
+      status: this.status,
+      grid: this.board.grid,
+    }
   }
 
   click(row, col) {
-    if (!this.hasFirstClick) {
+    if (!this._hasFirstClick) {
       this.board.populate(row, col)
-      this.unvisitedCount = this.W * this.H - this.numMines
-      this.hasFirstClick = true
+      this._unvisitedCount = this.W * this.H - this.numMines
+      this._hasFirstClick = true
     } else if (this.board.isBomb(row, col)) {
       this.board.update(row, col)
       this.status = 'loses'
       this.broadcast()
-      return
+      return {
+        status: this.status,
+        grid: this.board.grid,
+      }
     }
 
     const numMoves = this.board.update(row, col)
-    this.unvisitedCount -= numMoves
+    this._unvisitedCount -= numMoves
 
-    if (this.unvisitedCount === 0) {
+    if (this._unvisitedCount === 0) {
       this.status = 'wins'
     }
 
     this.broadcast()
+    return {
+      status: this.status,
+      grid: this.board.grid,
+    }
   }
 
   subscribe(cb) {
@@ -189,9 +203,12 @@ class Game {
 
   broadcast() {
     this.listeners.forEach(listener => {
-      listener(this.board.grid)
+      listener({
+        grid: this.board.grid,
+        status: this.status,
+      })
     })
   }
 }
 
-module.exports = Game
+export default Game

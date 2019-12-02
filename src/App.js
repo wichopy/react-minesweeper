@@ -1,25 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './App.css';
 import Grid from './Grid';
-
-import { reducer, initialState } from './reducer'
-import { useImmerReducer } from 'use-immer';
+import Game from './game';
 
 function App() {
-  const [state, dispatch] = useImmerReducer(reducer, initialState);
+  const [state, setState] = useState({
+    gameInstance: null,
+    status: 'new',
+    grid: null,
+  })
 
-  function handleClick(row, col, value) {
-    dispatch({
-      type: 'CLICK_TARGET',
-      value,
-      row,
-      col,
+  function handleNewGameClick() {
+    const gameInstance = new Game()
+    const { grid, status } = gameInstance.start()
+    setState({
+      gameInstance,
+      grid,
+      status,
     })
   }
 
-  function handleNewGameClick() {
-    dispatch({
-      type: 'START_NEW_GAME'
+  function handleClick(row, col) {
+    const { grid, status } = state.gameInstance.click(Number(row), Number(col))
+    setState({
+      ...state,
+      grid,
+      status,
     })
   }
 
@@ -41,7 +47,6 @@ function App() {
       }
       {
         state.status !== 'new' && (<>
-          Cells left to discover {state.unvisitedCount}
           <Grid grid={state.grid} onClick={handleClick} />
         </>
         )

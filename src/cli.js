@@ -10,7 +10,7 @@ async function main() {
   game.start()
 
   // Game renderer:
-  game.subscribe((grid) => {
+  game.subscribe(({ grid, status }) => {
     // print board on each broadcast
     console.log('Board:')
     let outputTopRow = '  '
